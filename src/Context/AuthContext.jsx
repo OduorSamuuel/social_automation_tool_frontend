@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const AuthContext = createContext();
 
@@ -14,10 +15,15 @@ export const AuthProvider = ({ children }) => {
 
     const checkAuthStatus = async () => {
         try {
-            const response = await axios.get('/api/user/', { withCredentials: true });
-            if (response.data.isAuthenticated) {
+            // Log the cookies
+            console.log('Current cookies:', document.cookie);
+
+            const response = await axios.get('http://localhost:8000/api/auth/me/', { withCredentials: true });
+            console.log('Auth check response:', response.data);
+
+            if (response.data.is_authenticated) {  // Use the backend's `is_authenticated`
                 setIsAuthenticated(true);
-                setUser(response.data.user);
+                setUser(response.data);  // Set the entire response data as user
             }
         } catch (error) {
             console.error('Auth check failed:', error);
@@ -40,7 +46,17 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         try {
-            await axios.post('/api/logout/', {}, { withCredentials: true });
+            // Get the CSRF token from the cookie
+            const csrftoken = Cookies.get('csrftoken');
+    
+            // Send the logout request with CSRF token in headers
+            await axios.post('http://localhost:8000/api/auth/logout/', {}, {
+                withCredentials: true,
+                headers: {
+                    'X-CSRFToken': csrftoken // Include CSRF token in headers
+                }
+            });
+    
             setIsAuthenticated(false);
             setUser(null);
         } catch (error) {

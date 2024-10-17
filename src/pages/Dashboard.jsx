@@ -1,10 +1,11 @@
 import React from 'react'
+import DashLayout from '../layouts/DashLayout'
 
 function Dashboard() {
   return (
-    <div>
-      Authenticated Dahboard
-    </div>
+    <DashLayout>
+        dashboard auth layout
+    </DashLayout>
   )
 }
 
